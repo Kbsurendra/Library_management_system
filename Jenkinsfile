@@ -55,17 +55,29 @@ pipeline {
 
         stage('Deploy using Docker Compose') {
             steps {
-                sh '''
-                    docker compose -p ${COMPOSE_PROJECT_NAME} config --quiet
-
-                    docker compose -p ${COMPOSE_PROJECT_NAME} pull springboot
-
-                    docker compose -p ${COMPOSE_PROJECT_NAME} \
-                        up -d --no-deps springboot
-                '''
+                withCredentials([
+                    string(
+                        credentialsId: 'mysql-root-password',
+                        variable: 'MYSQL_ROOT_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+                        export MYSQL_ROOT_PASSWORD
+        
+                        docker compose \
+                            -p library_management_system \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            pull springboot
+        
+                        docker compose \
+                            -p library_management_system \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            up -d --no-deps --force-recreate springboot
+                    '''
+                }
             }
         }
-    }
 
     post {
         success {
