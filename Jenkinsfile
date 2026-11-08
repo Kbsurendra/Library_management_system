@@ -63,21 +63,27 @@ pipeline {
                 ]) {
                     sh '''
                         set -eu
-                        export MYSQL_ROOT_PASSWORD
-        
+                        set +x
+
                         docker compose \
-                            -p library_management_system \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            config --quiet
+
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
                             -f /home/ubuntu/Library_management_system/docker-compose.yml \
                             pull springboot
-        
+
                         docker compose \
-                            -p library_management_system \
+                            -p ${COMPOSE_PROJECT_NAME} \
                             -f /home/ubuntu/Library_management_system/docker-compose.yml \
                             up -d --no-deps --force-recreate springboot
                     '''
                 }
             }
         }
+    }
 
     post {
         success {
