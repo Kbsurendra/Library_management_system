@@ -1,0 +1,79 @@
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'surendra187/library-management'
+        IMAGE_TAG = 'latest'
+        COMPOSE_PROJECT_NAME = 'library-management'
+    }
+
+    stages {
+
+        stage('GitHub Checkout') {
+            steps {
+                checkout scm
+                echo 'Source code downloaded successfully'
+            }
+        }
+
+        stage('Maven Build') {
+            steps {
+                sh 'mvn -B clean package -DskipTests'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker image inspect ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Docker Hub Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+                        echo "$DOCKER_TOKEN" | docker login \
+                            -u "$DOCKER_USER" --password-stdin
+
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy using Docker Compose') {
+            steps {
+                sh '''
+                    docker compose -p ${COMPOSE_PROJECT_NAME} config --quiet
+
+                    docker compose -p ${COMPOSE_PROJECT_NAME} pull springboot
+
+                    docker compose -p ${COMPOSE_PROJECT_NAME} \
+                        up -d --no-deps springboot
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Library Management application deployed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Jenkins Console Output.'
+        }
+    }
+}
