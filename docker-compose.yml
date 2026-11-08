@@ -34,7 +34,7 @@ services:
       retries: 10
 
   springboot:
-    image: surendra187/library-management:1.0
+    image: surendra187/library-management:${IMAGE_TAG:-latest}
     container_name: library-app
     restart: unless-stopped
     ports:
