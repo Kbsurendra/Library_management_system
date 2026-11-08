@@ -5,7 +5,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'surendra187/library-management'
         IMAGE_TAG = 'latest'
-        COMPOSE_PROJECT_NAME = 'library-management'
+        COMPOSE_PROJECT_NAME = 'library_management_system'
     }
 
     stages {
