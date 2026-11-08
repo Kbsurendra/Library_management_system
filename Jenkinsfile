@@ -54,35 +54,36 @@ pipeline {
         }
 
         stage('Deploy using Docker Compose') {
-            steps {
-                withCredentials([
-                    string(
-                        credentialsId: 'mysql-root-password',
-                        variable: 'MYSQL_ROOT_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        set -eu
-                        set +x
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'mysql-root-password',
+                usernameVariable: 'MYSQL_USER',
+                passwordVariable: 'MYSQL_ROOT_PASSWORD'
+            )
+        ]) {
+            sh '''
+                set -eu
+                set +x
 
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                            config --quiet
+                docker compose \
+                    -p ${COMPOSE_PROJECT_NAME} \
+                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                    config --quiet
 
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                            pull springboot
+                docker compose \
+                    -p ${COMPOSE_PROJECT_NAME} \
+                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                    pull springboot
 
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                            up -d --no-deps --force-recreate springboot
-                    '''
-                }
-            }
+                docker compose \
+                    -p ${COMPOSE_PROJECT_NAME} \
+                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                    up -d --no-deps --force-recreate springboot
+            '''
         }
+    }
+}
     }
 
     post {
