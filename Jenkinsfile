@@ -2,6 +2,14 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'JDK17'
+    }
+
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         IMAGE_NAME = 'surendra187/library-management'
         IMAGE_TAG = 'latest'
@@ -14,20 +22,23 @@ pipeline {
             steps {
                 sh '''
                     echo "===== JAVA HOME ====="
-                    echo $JAVA_HOME
-        
+                    echo "$JAVA_HOME"
+
                     echo "===== JAVA VERSION ====="
                     java -version
-        
+
                     echo "===== JAVAC VERSION ====="
                     javac -version
-        
+
                     echo "===== MAVEN VERSION ====="
                     mvn -version
-        
+
                     echo "===== JAVA PATH ====="
                     which java
                     which javac
+
+                    echo "===== JAVA 17 COMPILER ====="
+                    "$JAVA_HOME/bin/javac" -version
                 '''
             }
         }
@@ -41,7 +52,10 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                sh 'mvn -B clean package -DskipTests'
+                sh '''
+                    echo "Building with Java 17"
+                    mvn -B clean package -DskipTests
+                '''
             }
         }
 
@@ -65,10 +79,12 @@ pipeline {
                 ]) {
                     sh '''
                         set +x
+
                         echo "$DOCKER_TOKEN" | docker login \
                             -u "$DOCKER_USER" --password-stdin
 
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
+
                         docker logout
                     '''
                 }
@@ -76,36 +92,36 @@ pipeline {
         }
 
         stage('Deploy using Docker Compose') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'mysql-root-password',
-                usernameVariable: 'MYSQL_USER',
-                passwordVariable: 'MYSQL_ROOT_PASSWORD'
-            )
-        ]) {
-            sh '''
-                set -eu
-                set +x
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'mysql-root-password',
+                        usernameVariable: 'MYSQL_USER',
+                        passwordVariable: 'MYSQL_ROOT_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+                        set +x
 
-                docker compose \
-                    -p ${COMPOSE_PROJECT_NAME} \
-                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                    config --quiet
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            config --quiet
 
-                docker compose \
-                    -p ${COMPOSE_PROJECT_NAME} \
-                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                    pull springboot
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            pull springboot
 
-                docker compose \
-                    -p ${COMPOSE_PROJECT_NAME} \
-                    -f /home/ubuntu/Library_management_system/docker-compose.yml \
-                    up -d --no-deps --force-recreate springboot
-            '''
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            up -d --no-deps --force-recreate springboot
+                    '''
+                }
+            }
         }
-    }
-}
     }
 
     post {
