@@ -91,6 +91,7 @@ pipeline {
             }
         }
 
+        
         stage('Deploy using Docker Compose') {
             steps {
                 withCredentials([
@@ -103,25 +104,36 @@ pipeline {
                     sh '''
                         set -eu
                         set +x
-
+        
+                        echo "Checking Docker Compose file..."
+        
+                        test -f "$WORKSPACE/docker-compose.yml"
+        
                         docker compose \
                             -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            -f "$WORKSPACE/docker-compose.yml" \
                             config --quiet
-
+        
+                        echo "Pulling Spring Boot image..."
+        
                         docker compose \
                             -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            -f "$WORKSPACE/docker-compose.yml" \
                             pull springboot
-
+        
+                        echo "Deploying Spring Boot application..."
+        
                         docker compose \
                             -p ${COMPOSE_PROJECT_NAME} \
-                            -f /home/ubuntu/Library_management_system/docker-compose.yml \
+                            -f "$WORKSPACE/docker-compose.yml" \
                             up -d --no-deps --force-recreate springboot
+        
+                        echo "Deployment completed!"
                     '''
                 }
             }
         }
+
     }
 
     post {
