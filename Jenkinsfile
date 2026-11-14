@@ -10,6 +10,28 @@ pipeline {
 
     stages {
 
+        stage('Check Java Environment') {
+            steps {
+                sh '''
+                    echo "===== JAVA HOME ====="
+                    echo $JAVA_HOME
+        
+                    echo "===== JAVA VERSION ====="
+                    java -version
+        
+                    echo "===== JAVAC VERSION ====="
+                    javac -version
+        
+                    echo "===== MAVEN VERSION ====="
+                    mvn -version
+        
+                    echo "===== JAVA PATH ====="
+                    which java
+                    which javac
+                '''
+            }
+        }
+
         stage('GitHub Checkout') {
             steps {
                 checkout scm
