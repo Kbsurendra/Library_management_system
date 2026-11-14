@@ -92,6 +92,7 @@ pipeline {
         }
 
         
+        
         stage('Deploy using Docker Compose') {
             steps {
                 withCredentials([
@@ -109,10 +110,19 @@ pipeline {
         
                         test -f "$WORKSPACE/docker-compose.yml"
         
+                        echo "Starting MySQL and MongoDB..."
+        
                         docker compose \
                             -p ${COMPOSE_PROJECT_NAME} \
                             -f "$WORKSPACE/docker-compose.yml" \
-                            config --quiet
+                            up -d mysql mongodb
+        
+                        echo "Checking database containers..."
+        
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f "$WORKSPACE/docker-compose.yml" \
+                            ps
         
                         echo "Pulling Spring Boot image..."
         
@@ -121,18 +131,26 @@ pipeline {
                             -f "$WORKSPACE/docker-compose.yml" \
                             pull springboot
         
-                        echo "Deploying Spring Boot application..."
+                        echo "Starting Spring Boot application..."
         
                         docker compose \
                             -p ${COMPOSE_PROJECT_NAME} \
                             -f "$WORKSPACE/docker-compose.yml" \
-                            up -d --no-deps --force-recreate springboot
+                            up -d --force-recreate springboot
+        
+                        echo "Final container status..."
+        
+                        docker compose \
+                            -p ${COMPOSE_PROJECT_NAME} \
+                            -f "$WORKSPACE/docker-compose.yml" \
+                            ps
         
                         echo "Deployment completed!"
                     '''
                 }
             }
         }
+
 
     }
 
