@@ -44,7 +44,7 @@ services:
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/LibraryManagement
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/Library_Management
-      SPRING_DATASOURCE_USERNAME: libraryuser
+      SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SERVER_PORT: 8081
     depends_on:
