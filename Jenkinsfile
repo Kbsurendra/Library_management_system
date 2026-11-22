@@ -13,7 +13,9 @@ pipeline {
     environment {
         IMAGE_NAME = 'surendra187/library-management'
         IMAGE_TAG = 'latest'
-        COMPOSE_PROJECT_NAME = 'library_management_system'
+       // COMPOSE_PROJECT_NAME = 'library_management_system'
+        K8S_DIR = 'Kuberneties'
+        K8S_NAMESPACE = 'spring-boot'  
     }
 
     stages {
@@ -90,66 +92,136 @@ pipeline {
                 }
             }
         }
-
         
         
-        stage('Deploy using Docker Compose') {
+        // stage('Deploy using Docker Compose') {
+        //     steps {
+        //         withCredentials([
+        //             usernamePassword(
+        //                 credentialsId: 'mysql-root-password',
+        //                 usernameVariable: 'MYSQL_USER',
+        //                 passwordVariable: 'MYSQL_ROOT_PASSWORD'
+        //             )
+        //         ]) {
+        //             sh '''
+        //                 set -eu
+        //                 set +x
+        
+        //                 echo "Checking Docker Compose file..."
+        
+        //                 test -f "$WORKSPACE/docker-compose.yml"
+        
+        //                 echo "Starting MySQL and MongoDB..."
+        
+        //                 docker compose \
+        //                     -p ${COMPOSE_PROJECT_NAME} \
+        //                     -f "$WORKSPACE/docker-compose.yml" \
+        //                     up -d mysql mongodb
+        
+        //                 echo "Checking database containers..."
+        
+        //                 docker compose \
+        //                     -p ${COMPOSE_PROJECT_NAME} \
+        //                     -f "$WORKSPACE/docker-compose.yml" \
+        //                     ps
+        
+        //                 echo "Pulling Spring Boot image..."
+        
+        //                 docker compose \
+        //                     -p ${COMPOSE_PROJECT_NAME} \
+        //                     -f "$WORKSPACE/docker-compose.yml" \
+        //                     pull springboot
+        
+        //                 echo "Starting Spring Boot application..."
+        
+        //                 docker compose \
+        //                     -p ${COMPOSE_PROJECT_NAME} \
+        //                     -f "$WORKSPACE/docker-compose.yml" \
+        //                     up -d --force-recreate springboot
+        
+        //                 echo "Final container status..."
+        
+        //                 docker compose \
+        //                     -p ${COMPOSE_PROJECT_NAME} \
+        //                     -f "$WORKSPACE/docker-compose.yml" \
+        //                     ps
+        
+        //                 echo "Deployment completed!"
+        //             '''
+        //         }
+        //     }
+        // }
+        
+        stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([
-                    usernamePassword(
-                        credentialsId: 'mysql-root-password',
-                        usernameVariable: 'MYSQL_USER',
-                        passwordVariable: 'MYSQL_ROOT_PASSWORD'
+                    file(
+                        credentialsId: 'kubeconfig-file',
+                        variable: 'KUBECONFIG'
                     )
                 ]) {
                     sh '''
                         set -eu
-                        set +x
         
-                        echo "Checking Docker Compose file..."
+                        echo "===== CHECK KUBERNETES CONNECTION ====="
         
-                        test -f "$WORKSPACE/docker-compose.yml"
+                        kubectl cluster-info
         
-                        echo "Starting MySQL and MongoDB..."
+                        echo "===== CHECK KUBERNETES FILES ====="
         
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f "$WORKSPACE/docker-compose.yml" \
-                            up -d mysql mongodb
+                        test -f "$WORKSPACE/$K8S_DIR/namespace.yaml"
         
-                        echo "Checking database containers..."
+                        echo "===== CREATE NAMESPACE ====="
         
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f "$WORKSPACE/docker-compose.yml" \
-                            ps
+                        kubectl apply \
+                            -f "$WORKSPACE/$K8S_DIR/namespace.yaml"
         
-                        echo "Pulling Spring Boot image..."
+                        echo "===== DEPLOY MYSQL ====="
         
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f "$WORKSPACE/docker-compose.yml" \
-                            pull springboot
+                        kubectl apply \
+                            -n "$K8S_NAMESPACE" \
+                            -f "$WORKSPACE/$K8S_DIR/mysql/"
         
-                        echo "Starting Spring Boot application..."
+                        echo "===== DEPLOY MONGODB ====="
         
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f "$WORKSPACE/docker-compose.yml" \
-                            up -d --force-recreate springboot
+                        kubectl apply \
+                            -n "$K8S_NAMESPACE" \
+                            -f "$WORKSPACE/$K8S_DIR/mongodb/"
         
-                        echo "Final container status..."
+                        echo "===== DEPLOY SPRING BOOT ====="
         
-                        docker compose \
-                            -p ${COMPOSE_PROJECT_NAME} \
-                            -f "$WORKSPACE/docker-compose.yml" \
-                            ps
+                        kubectl apply \
+                            -n "$K8S_NAMESPACE" \
+                            -f "$WORKSPACE/$K8S_DIR/springboot/"
         
-                        echo "Deployment completed!"
+                        echo "===== UPDATE SPRING BOOT IMAGE ====="
+        
+                        kubectl set image \
+                            deployment/springboot \
+                            springboot=${IMAGE_NAME}:${IMAGE_TAG} \
+                            -n "$K8S_NAMESPACE"
+        
+                        echo "===== WAIT FOR DEPLOYMENT ====="
+        
+                        kubectl rollout status \
+                            deployment/springboot \
+                            -n "$K8S_NAMESPACE" \
+                            --timeout=180s
+        
+                        echo "===== CHECK PODS ====="
+        
+                        kubectl get pods -n "$K8S_NAMESPACE"
+        
+                        echo "===== CHECK SERVICES ====="
+        
+                        kubectl get services -n "$K8S_NAMESPACE"
+        
+                        echo "===== DEPLOYMENT COMPLETED ====="
                     '''
                 }
             }
         }
+
 
 
     }
