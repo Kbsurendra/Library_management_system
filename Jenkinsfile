@@ -14,7 +14,7 @@ pipeline {
         IMAGE_NAME = 'surendra187/library-management'
         IMAGE_TAG = 'latest'
        // COMPOSE_PROJECT_NAME = 'library_management_system'
-        K8S_DIR = 'Kuberneties'
+        K8S_DIR = 'kuberneties'
         K8S_NAMESPACE = 'spring-boot'  
     }
 
