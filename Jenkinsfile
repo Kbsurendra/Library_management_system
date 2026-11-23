@@ -194,13 +194,6 @@ pipeline {
                             -n "$K8S_NAMESPACE" \
                             -f "$WORKSPACE/$K8S_DIR/spring-boot/"
         
-                        echo "===== UPDATE SPRING BOOT IMAGE ====="
-        
-                        kubectl set image \
-                            deployment/spring-boot-deployment \
-                            springboot=${IMAGE_NAME}:${IMAGE_TAG} \
-                            -n "$K8S_NAMESPACE"
-        
                         echo "===== WAIT FOR DEPLOYMENT ====="
         
                         kubectl rollout status \
@@ -217,6 +210,11 @@ pipeline {
                         kubectl get services -n "$K8S_NAMESPACE"
         
                         echo "===== DEPLOYMENT COMPLETED ====="
+
+                        echo "===== Port Forward ====="
+
+                        kubectl port-forward service/spring-boot-service 8081:8081 -n spring-boot
+                        
                     '''
                 }
             }
