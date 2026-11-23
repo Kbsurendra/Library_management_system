@@ -3,12 +3,12 @@ services:
   mysql:
     image: mysql:8.0
     container_name: library-mysql
+    ports:
+    - "3306:3306"
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: Library_Management
-      MYSQL_USER: libraryuser
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -22,6 +22,8 @@ services:
   mongodb:
     image: mongo:7.0
     container_name: library-mongodb
+    ports:
+    - "27017:27017"
     restart: unless-stopped
     volumes:
       - mongodb_data:/data/db
@@ -42,8 +44,8 @@ services:
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/LibraryManagement
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/Library_Management
-      SPRING_DATASOURCE_USERNAME: libraryuser
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SERVER_PORT: 8081
     depends_on:
       mysql:
