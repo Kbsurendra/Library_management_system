@@ -197,14 +197,14 @@ pipeline {
                         echo "===== UPDATE SPRING BOOT IMAGE ====="
         
                         kubectl set image \
-                            deployment/spring-boot \
+                            deployment/spring-boot-deployment \
                             springboot=${IMAGE_NAME}:${IMAGE_TAG} \
                             -n "$K8S_NAMESPACE"
         
                         echo "===== WAIT FOR DEPLOYMENT ====="
         
                         kubectl rollout status \
-                            deployment/spring-boot \
+                            deployment/spring-boot-deployment \
                             -n "$K8S_NAMESPACE" \
                             --timeout=180s
         
