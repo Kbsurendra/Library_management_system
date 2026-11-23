@@ -217,7 +217,7 @@ pipeline {
                                 echo "Port 8081 is already in use. Skipping port forwarding."
                             else
                                 echo "Port 8081 is available. Starting port forwarding..."
-                                kubectl port-forward service/spring-boot-service 8081:8081 -n spring-boot
+                                kubectl port-forward service/spring-boot-service 8081:8081 -n spring-boot &
                             fi
                             
                     '''
