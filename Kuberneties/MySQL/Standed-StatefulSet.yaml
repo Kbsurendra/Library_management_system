@@ -5,7 +5,7 @@ metadata:
   namespace: spring-boot
 spec:
   serviceName: mysql-service
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
