@@ -4,7 +4,11 @@ services:
     image: mysql:8.0
     container_name: library-mysql
     ports:
+<<<<<<< Updated upstream
     - "3306:3306"
+=======
+      - "3306:3306"
+>>>>>>> Stashed changes
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
