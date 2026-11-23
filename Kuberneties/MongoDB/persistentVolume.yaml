@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mongodb-persistentvolume
+  labels:
+    app: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-mongodb
+  hostPath:
+    path: /mnt/data

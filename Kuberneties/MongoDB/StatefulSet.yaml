@@ -1,0 +1,45 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: mongodb-statefulset
+  namespace: spring-boot
+spec:
+  serviceName: mongodb-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports:
+            - containerPort: 27017
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: Library_Management
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodb-data
+      spec:
+        storageClassName: local-storage-mongodb
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        

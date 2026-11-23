@@ -1,0 +1,42 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: spring-boot-deployment
+  namespace: spring-boot
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spring-boot
+  template:
+    metadata:
+      name: spring-boot-dev-pod
+      labels:
+        app: spring-boot
+    spec:
+      containers:
+        - name: spring-boot
+          image: surendra187/library-management
+          ports:
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-service:3306/Library_Management"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://mongodb-service:27017/LibraryManagement"
+            - name: SERVER_PORT
+              value: "8081"

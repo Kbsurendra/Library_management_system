@@ -1,0 +1,25 @@
+kind: VerticalPodAutoscaler
+apiVersion: autoscaling.k8s.io/v1
+metadata:
+  name: mongodb-vpa
+  namespace: spring-boot
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: mongodb-statefulset
+  updatePolicy:
+    updateMode: "Recreate"
+  resourcePolicy:
+    containerPolicies:
+      - containerName: mongodb
+        controlledResources:
+          - cpu
+          - memory
+        controlledValues: RequestsAndLimits
+        minAllowed:
+          cpu: 100m
+          memory: 256Mi
+        maxAllowed:
+          cpu: "2"
+          memory: 2Gi
