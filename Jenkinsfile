@@ -180,31 +180,31 @@ pipeline {
         
                         kubectl apply \
                             -n "$K8S_NAMESPACE" \
-                            -f "$WORKSPACE/$K8S_DIR/mysql/"
+                            -f "$WORKSPACE/$K8S_DIR/MySQL/"
         
                         echo "===== DEPLOY MONGODB ====="
         
                         kubectl apply \
                             -n "$K8S_NAMESPACE" \
-                            -f "$WORKSPACE/$K8S_DIR/mongodb/"
+                            -f "$WORKSPACE/$K8S_DIR/MongoDB/"
         
                         echo "===== DEPLOY SPRING BOOT ====="
         
                         kubectl apply \
                             -n "$K8S_NAMESPACE" \
-                            -f "$WORKSPACE/$K8S_DIR/springboot/"
+                            -f "$WORKSPACE/$K8S_DIR/spring-boot/"
         
                         echo "===== UPDATE SPRING BOOT IMAGE ====="
         
                         kubectl set image \
-                            deployment/springboot \
+                            deployment/spring-boot \
                             springboot=${IMAGE_NAME}:${IMAGE_TAG} \
                             -n "$K8S_NAMESPACE"
         
                         echo "===== WAIT FOR DEPLOYMENT ====="
         
                         kubectl rollout status \
-                            deployment/springboot \
+                            deployment/spring-boot \
                             -n "$K8S_NAMESPACE" \
                             --timeout=180s
         
